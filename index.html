@@ -62,7 +62,7 @@
   🪙<span class="hc" id="cv">0</span>
   💎<span class="hg" id="gv">0</span>
   👑<span class="hcr" id="crv">0</span>
-  💠<span class="hoj">∞</span>
+  💠<span class="hoj" id="ojv">0</span>
   BEST:<span class="hc" id="bv">0</span>
 </div>
 <div id="badge-row">
@@ -105,7 +105,7 @@
       <span style="color:var(--accent)">🪙<span id="sc_coins">0</span></span>
       <span style="color:var(--gem)">💎<span id="sc_gems">0</span></span>
       <span style="color:var(--crown)">👑<span id="sc_crowns">0</span></span>
-      <span style="color:var(--oji)">💠∞</span>
+      <span style="color:var(--oji)">💠<span id="sc_oji">0</span></span>
     </div>
     <div class="tabs">
       <button class="tab on" id="T_shoes" onclick="switchTab('shoes')">👟 SHOES</button>
@@ -131,7 +131,7 @@ const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 function resize(){
   canvas.width=Math.min(window.innerWidth-28,680);
   canvas.height=Math.min(window.innerHeight-130,480);
-  canvas.style.background=activeWorld().bg;
+  if(typeof activeWorld==='function') canvas.style.background=activeWorld().bg;
 }
 resize(); window.addEventListener('resize',resize);
 
@@ -184,7 +184,7 @@ function load(){
   try{
     const s=JSON.parse(localStorage.getItem('r67v5')||'{}');
     coins=s.coins??0; gems=s.gems??0; crowns=s.crowns??0; best=s.best??0;
-    oji=999999;
+    oji=9999;
     SHOES.forEach(x=>{if(s.so?.includes(x.id))x.owned=true;});
     TRAILS.forEach(x=>{if(s.to?.includes(x.id))x.owned=true;});
     HATS.forEach(x=>{if(s.ho?.includes(x.id))x.owned=true;});
@@ -227,22 +227,7 @@ const OVS=['OV_menu','OV_dead','OV_shop','OV_worlds'];
 function show(id){OVS.forEach(o=>document.getElementById(o).classList.toggle('hidden',o!==id));}
 function hideAll(){OVS.forEach(o=>document.getElementById(o).classList.add('hidden'));}
 
-// ── BUTTONS ──
 let shopFrom='menu',shopTab='shoes',worldFrom='menu';
-document.getElementById('btn_start').onclick=startGame;
-document.getElementById('btn_shop').onclick=()=>openShop('menu');
-document.getElementById('btn_worlds').onclick=()=>openWorlds('menu');
-document.getElementById('btn_leave').onclick=()=>window.close();
-document.getElementById('btn_again').onclick=startGame;
-document.getElementById('btn_dshop').onclick=()=>openShop('dead');
-document.getElementById('btn_dworlds').onclick=()=>openWorlds('dead');
-document.getElementById('btn_sback').onclick=closeShop;
-document.getElementById('btn_wback').onclick=closeWorlds;
-document.getElementById('qbtn').onclick=()=>{state='menu';parts=[];nums=[];document.getElementById('qbtn').style.display='none';show('OV_menu');};
-document.addEventListener('keydown',e=>{
-  if(e.key===' '&&(state==='menu'||state==='dead'))startGame();
-  if(e.key==='Escape'&&(state==='shop'||state==='worlds')){closeShop();closeWorlds();}
-});
 
 function openShop(f){shopFrom=f;state='shop';renderShop();show('OV_shop');}
 function closeShop(){state=shopFrom;show(shopFrom==='dead'?'OV_dead':'OV_menu');}
@@ -260,6 +245,7 @@ function renderShop(){
   document.getElementById('sc_coins').textContent=coins;
   document.getElementById('sc_gems').textContent=gems;
   document.getElementById('sc_crowns').textContent=crowns;
+  document.getElementById('sc_oji').textContent=oji;
   const g=document.getElementById('shop_grid');g.innerHTML='';
   if(shopTab==='shoes'){
     SHOES.forEach(s=>{
@@ -322,6 +308,7 @@ function updHUD(){
   document.getElementById('cv').textContent=coins;
   document.getElementById('gv').textContent=gems;
   document.getElementById('crv').textContent=crowns;
+  document.getElementById('ojv').textContent=oji;
   document.getElementById('bv').textContent=best;
 }
 function updBadges(){
@@ -551,7 +538,30 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-load();updHUD();updBadges();loop();
+// ── BOOT ──
+load(); updHUD(); updBadges();
+
+// Wire buttons here — AFTER all functions are defined
+document.getElementById('btn_start').onclick  = startGame;
+document.getElementById('btn_shop').onclick   = () => openShop('menu');
+document.getElementById('btn_worlds').onclick = () => openWorlds('menu');
+document.getElementById('btn_leave').onclick  = () => { show('OV_menu'); };
+document.getElementById('btn_again').onclick  = startGame;
+document.getElementById('btn_dshop').onclick  = () => openShop('dead');
+document.getElementById('btn_dworlds').onclick= () => openWorlds('dead');
+document.getElementById('btn_sback').onclick  = closeShop;
+document.getElementById('btn_wback').onclick  = closeWorlds;
+document.getElementById('qbtn').onclick = () => {
+  state = 'menu'; parts = []; nums = [];
+  document.getElementById('qbtn').style.display = 'none';
+  show('OV_menu');
+};
+document.addEventListener('keydown', e => {
+  if (e.key === ' ' && (state === 'menu' || state === 'dead')) startGame();
+  if (e.key === 'Escape' && (state === 'shop' || state === 'worlds')) { closeShop(); closeWorlds(); }
+});
+
+loop();
 </script>
 </body>
 </html>
