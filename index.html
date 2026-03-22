@@ -305,18 +305,19 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>{K[e.key]=false;});
 
 let ts=null,td={x:0,y:0};
-CV.addEventListener('touchstart',e=>{
+CV.addEventListener('pointerdown',e=>{
   if(state!=='playing') return;
   e.preventDefault();
-  ts={x:e.touches[0].clientX,y:e.touches[0].clientY};
-},{passive:false});
-CV.addEventListener('touchmove',e=>{
+  ts={x:e.clientX,y:e.clientY};
+});
+CV.addEventListener('pointermove',e=>{
   if(state!=='playing'||!ts) return;
   e.preventDefault();
-  const dx=e.touches[0].clientX-ts.x,dy=e.touches[0].clientY-ts.y,l=Math.hypot(dx,dy);
+  const dx=e.clientX-ts.x,dy=e.clientY-ts.y,l=Math.hypot(dx,dy);
   td=l>5?{x:dx/l,y:dy/l}:{x:0,y:0};
-},{passive:false});
-CV.addEventListener('touchend',()=>{ts=null;td={x:0,y:0};});
+});
+CV.addEventListener('pointerup',()=>{ts=null;td={x:0,y:0};});
+CV.addEventListener('pointercancel',()=>{ts=null;td={x:0,y:0};});
 
 // ═══════════════════════════════════════
 // OVERLAYS
@@ -368,8 +369,8 @@ function mkBtn(cls,text,fn){
   const b=document.createElement('button');
   b.className='btn '+cls+' cbtn';
   b.textContent=text;
-  b.addEventListener('click',fn);
-  b.addEventListener('touchend',e=>{e.preventDefault();fn();},{passive:false});
+  b.addEventListener('pointerup',e=>{e.preventDefault();fn();});
+  b.addEventListener('click',fn); // fallback
   return b;
 }
 
@@ -486,14 +487,22 @@ function spawnObs(){
     if(valid) obs.push(o);
   }
 }
+function safePos(){
+  const W=CV.width,H=CV.height;
+  let x,y,t=0;
+  do {
+    x=50+Math.random()*(W-100);
+    y=50+Math.random()*(H-100);
+    t++;
+  } while(t<50 && obs.some(o=>x>o.x-10&&x<o.x+o.w+10&&y>o.y-10&&y<o.y+o.h+10));
+  return {x,y,r:7,age:0};
+}
 function spawnCols(){
   cols=[];
-  const W=CV.width,H=CV.height;
-  const r=()=>({x:50+Math.random()*(W-100),y:50+Math.random()*(H-100),r:7,age:0});
-  for(let i=0;i<4;i++) cols.push({...r(),type:'coin'});
-  for(let i=0;i<2;i++) cols.push({...r(),type:'gem'});
-  cols.push({...r(),type:'crown'});
-  cols.push({...r(),type:'oji'});
+  for(let i=0;i<4;i++) cols.push({...safePos(),type:'coin'});
+  for(let i=0;i<2;i++) cols.push({...safePos(),type:'gem'});
+  cols.push({...safePos(),type:'crown'});
+  cols.push({...safePos(),type:'oji'});
 }
 
 // ═══════════════════════════════════════
@@ -621,38 +630,76 @@ function loop(){
     let blk=false;for(const o of obs)if(rCol(nx,ny,P.r,o)){blk=true;break;}
     if(!blk){P.x=nx;P.y=ny;}
 
-    // Enemy AI — ray-cast waypoint
-    E.ang+=.02;
-    if(!E.wp||E.wpTimer<=0){
-      const toAng=Math.atan2(P.y-E.y,P.x-E.x);
-      let bestScore=-Infinity,bdx=0,bdy=0;
-      for(let r=0;r<24;r++){
-        const ang=toAng+(r/24-.5)*Math.PI*2;
-        const rdx=Math.cos(ang),rdy=Math.sin(ang);
-        const dot=rdx*(P.x-E.x)+rdy*(P.y-E.y);
-        let blocked=false;
-        for(let step=10;step<=40;step+=10){
-          const rx=E.x+rdx*step,ry=E.y+rdy*step;
-          if(obs.some(o=>rx>o.x-E.r&&rx<o.x+o.w+E.r&&ry>o.y-E.r&&ry<o.y+o.h+E.r)){blocked=true;break;}
+    // Enemy AI — ray-cast waypoint with unstuck logic
+    E.ang += .02;
+
+    // Track how long 67 has been stuck in the same spot
+    if (!E.lastPos) E.lastPos = {x: E.x, y: E.y, frames: 0};
+    const moved = Math.hypot(E.x - E.lastPos.x, E.y - E.lastPos.y);
+    if (moved < 0.3) { E.lastPos.frames++; } else { E.lastPos.x=E.x; E.lastPos.y=E.y; E.lastPos.frames=0; }
+    const stuck = E.lastPos.frames > 20;
+
+    if (!E.wp || E.wpTimer <= 0 || stuck) {
+      const toAng = Math.atan2(P.y - E.y, P.x - E.x);
+      let bestScore = -Infinity, bdx = 0, bdy = 0;
+      const RAY_STEPS = [8, 16, 24, 32, 40]; // check closer steps too
+      for (let r = 0; r < 32; r++) {
+        // If stuck, try random angles to escape; otherwise prefer player direction
+        const ang = stuck
+          ? Math.random() * Math.PI * 2
+          : toAng + (r / 32 - 0.5) * Math.PI * 2;
+        const rdx = Math.cos(ang), rdy = Math.sin(ang);
+        const dot = rdx * (P.x - E.x) + rdy * (P.y - E.y);
+        // Find how far this ray can travel before hitting an obstacle
+        let clearDist = 40;
+        for (const step of RAY_STEPS) {
+          const rx = E.x + rdx * step, ry = E.y + rdy * step;
+          if (rx < E.r || rx > W - E.r || ry < E.r || ry > H - E.r) { clearDist = step - 8; break; }
+          if (obs.some(o => rx > o.x - E.r && rx < o.x + o.w + E.r && ry > o.y - E.r && ry < o.y + o.h + E.r)) {
+            clearDist = step - 8; break;
+          }
         }
-        const sc=dot-(blocked?99999:0);
-        if(sc>bestScore){bestScore=sc;bdx=rdx;bdy=rdy;}
+        // Score: reward clear space + direction toward player; penalise blocked rays
+        const sc = (clearDist / 40) * 200 + (clearDist > 8 ? dot : -99999);
+        if (sc > bestScore) { bestScore = sc; bdx = rdx; bdy = rdy; }
       }
-      E.wp={x:E.x+bdx*50,y:E.y+bdy*50};E.wpTimer=40;
+      // Waypoint distance: shorter when stuck so we re-evaluate sooner
+      const wpDist = stuck ? 20 : 50;
+      E.wp = {x: E.x + bdx * wpDist, y: E.y + bdy * wpDist};
+      E.wpTimer = stuck ? 8 : 30;
+      if (stuck) { E.lastPos.frames = 0; }
     }
     E.wpTimer--;
-    const wpDx=E.wp.x-E.x,wpDy=E.wp.y-E.y,wpD=Math.hypot(wpDx,wpDy);
-    let mX=wpD>0?wpDx/wpD:0,mY=wpD>0?wpDy/wpD:0;
-    if(wpD<10){const pd=Math.hypot(P.x-E.x,P.y-E.y);mX=pd>0?(P.x-E.x)/pd:0;mY=pd>0?(P.y-E.y)/pd:0;E.wpTimer=0;}
-    let enx=Math.max(E.r,Math.min(W-E.r,E.x+mX*E.spd)),eny=Math.max(E.r,Math.min(H-E.r,E.y+mY*E.spd));
-    if(obs.some(o=>rCol(enx,eny,E.r,o))){
-      const ex2=Math.max(E.r,Math.min(W-E.r,E.x+mX*E.spd));
-      if(!obs.some(o=>rCol(ex2,E.y,E.r,o))){enx=ex2;eny=E.y;}
-      else{const ey2=Math.max(E.r,Math.min(H-E.r,E.y+mY*E.spd));
-        if(!obs.some(o=>rCol(E.x,ey2,E.r,o))){enx=E.x;eny=ey2;}
-        else{enx=E.x;eny=E.y;E.wpTimer=0;}}
+
+    // Steer toward waypoint
+    const wpDx = E.wp.x - E.x, wpDy = E.wp.y - E.y, wpD = Math.hypot(wpDx, wpDy);
+    let mX = wpD > 0 ? wpDx / wpD : 0, mY = wpD > 0 ? wpDy / wpD : 0;
+    // When close to waypoint, aim directly at player
+    if (wpD < 12) {
+      const pd = Math.hypot(P.x - E.x, P.y - E.y);
+      mX = pd > 0 ? (P.x - E.x) / pd : 0;
+      mY = pd > 0 ? (P.y - E.y) / pd : 0;
+      E.wpTimer = 0;
     }
-    E.x=enx;E.y=eny;
+
+    // Move with wall-slide fallback
+    let enx = Math.max(E.r, Math.min(W - E.r, E.x + mX * E.spd));
+    let eny = Math.max(E.r, Math.min(H - E.r, E.y + mY * E.spd));
+    if (obs.some(o => rCol(enx, eny, E.r, o))) {
+      // Try X-only
+      const ex2 = Math.max(E.r, Math.min(W - E.r, E.x + mX * E.spd));
+      if (!obs.some(o => rCol(ex2, E.y, E.r, o))) { enx = ex2; eny = E.y; }
+      else {
+        // Try Y-only
+        const ey2 = Math.max(E.r, Math.min(H - E.r, E.y + mY * E.spd));
+        if (!obs.some(o => rCol(E.x, ey2, E.r, o))) { enx = E.x; eny = ey2; }
+        else {
+          // Fully blocked — force waypoint recalc next frame
+          enx = E.x; eny = E.y; E.wpTimer = 0;
+        }
+      }
+    }
+    E.x = enx; E.y = eny;
 
     // Collectibles
     for(let i=cols.length-1;i>=0;i--){
@@ -662,7 +709,7 @@ function loop(){
         if(c.type==='gem'){rGems++;for(let p=0;p<10;p++){const a=Math.random()*Math.PI*2;parts.push({x:c.x,y:c.y,vx:Math.cos(a)*3.5,vy:Math.sin(a)*3.5,life:1,decay:.04,r:3,color:'#c084fc'});}showFlash('💎 GEM!');sfx('gem');}
         if(c.type==='crown'){rCrowns++;for(let p=0;p<12;p++){const a=Math.random()*Math.PI*2;parts.push({x:c.x,y:c.y,vx:Math.cos(a)*4,vy:Math.sin(a)*4,life:1,decay:.035,r:3.5,color:'#f97316'});}showFlash('👑 CROWN!');sfx('crown');}
         if(c.type==='oji'){rOji++;for(let p=0;p<14;p++){const a=Math.random()*Math.PI*2;parts.push({x:c.x,y:c.y,vx:Math.cos(a)*4.5,vy:Math.sin(a)*4.5,life:1,decay:.03,r:4,color:'#00e5ff'});}showFlash('💠 OJIDOLLAR!');sfx('oji');}
-        cols.splice(i,1);cols.push({x:50+Math.random()*(W-100),y:50+Math.random()*(H-100),r:7,age:0,type:c.type});
+        cols.splice(i,1);cols.push({...safePos(),type:c.type});
       }
     }
 
@@ -838,8 +885,9 @@ updateBadges();
 function tap(id,fn){
   const el=document.getElementById(id);
   if(!el)return;
-  el.addEventListener('click',fn);
-  el.addEventListener('touchend',e=>{e.preventDefault();fn();},{passive:false});
+  // Use pointerup — works on Android, iOS, and desktop reliably
+  el.addEventListener('pointerup',e=>{e.preventDefault();fn();});
+  el.addEventListener('click',fn); // fallback
 }
 
 tap('btnStart', startGame);
