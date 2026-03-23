@@ -51,7 +51,8 @@ canvas{display:block;touch-action:none;}
 /* OVERLAYS */
 .ov{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  background:rgba(10,10,15,.95);z-index:10;transition:opacity .2s;}
+  background:rgba(10,10,15,.95);z-index:10;transition:opacity .2s;
+  touch-action:manipulation;}
 .ov.hide{opacity:0;pointer-events:none;}
 /* Shop/worlds scroll — touch-action:pan-y so finger scroll works */
 .ov.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -114,6 +115,7 @@ canvas{display:block;touch-action:none;}
 <div id="title">RUN FROM 67</div>
 <div id="hud">
   SCORE:<b class="ha" id="hSc">0</b>
+  LVL:<b class="ha" id="hLv">1</b>
   TIME:<b class="ha" id="hTm">0</b>s
   🪙<b class="ha" id="hCo">0</b>
   💎<b class="hg" id="hGe">0</b>
@@ -131,17 +133,84 @@ canvas{display:block;touch-action:none;}
   <canvas id="c"></canvas>
   <div class="scanline"></div>
   <div id="flash"></div>
+  <div id="lvlbanner" style="display:none;position:absolute;inset:0;z-index:9;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div id="lvltext" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,8vw,4rem);letter-spacing:.2em;color:#fff;text-shadow:0 0 30px var(--acc);opacity:0;transition:opacity .3s;"></div>
+    <div id="lvlsub" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(.9rem,3vw,1.4rem);letter-spacing:.15em;color:var(--acc);opacity:0;transition:opacity .3s;margin-top:4px;"></div>
+  </div>
   <button id="qbtn">✕ QUIT</button>
 
   <!-- MENU -->
   <div class="ov" id="ovMenu">
-    <div class="otitle" style="color:var(--acc)">RUN FROM 67</div>
     <div class="osub">DODGE 67 AS LONG AS YOU CAN<br>🪙COINS→SHOES · 💎GEMS→TRAILS · 👑CROWNS→HATS<br>💠OJIDOLLARS→WORLDS</div>
     <button class="btn" id="btnStart">START RUNNING</button>
     <button class="btn grn" id="btnShop">🛒 SHOP</button>
     <button class="btn oji" id="btnWorlds">🌍 WORLDS</button>
+    <button class="btn" id="btnLog" style="border-color:#888;color:#888;">📋 UPDATE LOG</button>
     <button class="btn red" id="btnLeave">✕ LEAVE</button>
     <div id="hint">WASD · ARROWS · TOUCH DRAG</div>
+  </div>
+
+  <!-- UPDATE LOG -->
+  <div class="ov hide scroll" id="ovLog">
+    <div class="shophead">
+      <button class="btn" id="btnLogClose" style="padding:7px 14px;font-size:.8rem;flex-shrink:0;">✕ CLOSE</button>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.15em;color:#aaa;">📋 UPDATE LOG</span>
+    </div>
+    <div style="width:100%;max-width:480px;font-size:.6rem;line-height:1.9;color:rgba(255,255,255,.5);">
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:6px 0 2px;">v1.6 — BUG FIX UPDATE</div>
+      <div>• Fixed 67 getting stuck inside obstacles on mobile</div>
+      <div>• Reduced 67 collision radius for accurate movement</div>
+      <div>• Push-out system — 67 instantly ejects from walls</div>
+      <div>• 67 now spawns in a guaranteed clear position</div>
+      <div>• Fixed items spawning inside obstacles</div>
+      <div>• Fixed items respawning inside obstacles</div>
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:10px 0 2px;">v1.5 — MUSIC & SOUND UPDATE</div>
+      <div>• Unique sound effects for each collectible type</div>
+      <div>• New chill lo-fi menu/shop music (90 BPM)</div>
+      <div>• Tense chase music during gameplay (170 BPM)</div>
+      <div>• Death jingle plays when caught</div>
+      <div>• Lowered overall music volume</div>
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:10px 0 2px;">v1.4 — MOBILE FIX UPDATE</div>
+      <div>• Fixed buttons not working on Android</div>
+      <div>• Switched to Pointer Events API (Android + iOS)</div>
+      <div>• Fixed canvas touch controls on Android</div>
+      <div>• Better viewport sizing for mobile browsers</div>
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:10px 0 2px;">v1.3 — AI & POLISH UPDATE</div>
+      <div>• 67 now uses ray-cast pathfinding AI</div>
+      <div>• 67 navigates around obstacles intelligently</div>
+      <div>• Stuck detection — 67 escapes if wedged</div>
+      <div>• Obstacles no longer overlap each other</div>
+      <div>• ← BACK button moved to top of shop</div>
+      <div>• Fixed shop card icon overlapping</div>
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:10px 0 2px;">v1.2 — CONTENT UPDATE</div>
+      <div>• Added 👑 Crowns currency</div>
+      <div>• Added 🎩 Hat Shop — hats slow 67's speed</div>
+      <div>• Added 💠 OjiDollars currency</div>
+      <div>• Added 🌍 Worlds — Lava, Ice, Water, Void</div>
+      <div>• Added full music system (Web Audio)</div>
+      <div>• Owner Crown FREE — 99% less speed gain</div>
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:10px 0 2px;">v1.1 — SHOP UPDATE</div>
+      <div>• Added 🪙 Coins and 💎 Gems currencies</div>
+      <div>• Added 👟 Shoe Shop</div>
+      <div>• Added ✨ Trail Shop — trails boost speed</div>
+      <div>• Stickman wears equipped shoes on feet</div>
+      <div>• Hat emoji shown on stickman head</div>
+      <div>• Persistent save system via localStorage</div>
+
+      <div style="color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;margin:10px 0 2px;">v1.0 — INITIAL RELEASE</div>
+      <div>• Core gameplay — run from 67</div>
+      <div>• 67 drawn as Steal a Brainrot character</div>
+      <div>• Animated stickman player</div>
+      <div>• WASD / Arrows / Touch controls</div>
+      <div>• Obstacles, score, and best time tracking</div>
+
+    </div>
   </div>
 
   <!-- DEAD -->
@@ -169,6 +238,7 @@ canvas{display:block;touch-action:none;}
       <button class="tab on" id="tShoes">👟 SHOES</button>
       <button class="tab" id="tTrails">✨ TRAILS</button>
       <button class="tab" id="tHats">🎩 HATS</button>
+      <button class="tab" id="tUpgrades">⬆ UPGRADE</button>
     </div>
     <div class="grid" id="shopGrid"></div>
   </div>
@@ -249,18 +319,64 @@ const eqShoe  = () => SHOES.find(x=>x.eq)  || SHOES[0];
 const eqTrail = () => TRAILS.find(x=>x.eq) || TRAILS[0];
 const eqHat   = () => HATS.find(x=>x.eq)   || HATS[0];
 const curWorld = () => WORLDS.find(x=>x.active) || WORLDS[0];
+
+// ── UPGRADES ──
+// Each item can be upgraded up to 5 times. Costs coins. Boosts the item's core stat.
+const UPGRADES = {
+  // Shoes — each upgrade adds +0.4 speed
+  bare:    {name:'Bare Feet',   emoji:'🦶', stat:'spd',  base:3.2,    perLvl:0.4,  baseCost:50,   costMult:2},
+  sneak:   {name:'Sneakers',    emoji:'👟', stat:'spd',  base:3.9,    perLvl:0.5,  baseCost:100,  costMult:2},
+  nikes:   {name:'Air Nikes',   emoji:'🏃', stat:'spd',  base:4.8,    perLvl:0.6,  baseCost:200,  costMult:2.2},
+  rockets: {name:'Rocket Boots',emoji:'🚀', stat:'spd',  base:6.0,    perLvl:0.8,  baseCost:400,  costMult:2.5},
+  owner:   {name:'Owner Boots', emoji:'👑', stat:'spd',  base:3.2*2.8,perLvl:1.5,  baseCost:1000, costMult:3},
+  // Trails — each upgrade adds +0.3 speed bonus
+  def:    {name:'Default',     emoji:'✦', stat:'bonus', base:0,    perLvl:0.3,  baseCost:80,   costMult:2},
+  fire:   {name:'Fire Trail',  emoji:'🔥',stat:'bonus', base:0.5,  perLvl:0.4,  baseCost:150,  costMult:2},
+  storm:  {name:'Storm Trail', emoji:'⚡',stat:'bonus', base:1.2,  perLvl:0.5,  baseCost:300,  costMult:2},
+  void:   {name:'Void Trail',  emoji:'🌀',stat:'bonus', base:2.0,  perLvl:0.6,  baseCost:600,  costMult:2.5},
+  divine: {name:'Divine Trail',emoji:'🌟',stat:'bonus', base:3.5,  perLvl:0.8,  baseCost:1200, costMult:3},
+  // Hats — each upgrade adds more slow to 67
+  cap:    {name:'Baseball Cap',emoji:'🧢',stat:'slow',  base:0.20, perLvl:0.05, baseCost:100,  costMult:2},
+  top:    {name:'Top Hat',     emoji:'🎩',stat:'slow',  base:0.40, perLvl:0.05, baseCost:200,  costMult:2},
+  wizard: {name:'Wizard Hat',  emoji:'🧙',stat:'slow',  base:0.60, perLvl:0.04, baseCost:400,  costMult:2.2},
+  king:   {name:'King Crown',  emoji:'💀',stat:'slow',  base:0.85, perLvl:0.02, baseCost:800,  costMult:2.5},
+};
+const MAX_UPGRADE = 90;
+let upgLevels = {}; // {itemId: level 0-9999}
+
+function upgLevel(id){ return upgLevels[id] || 0; }
+function upgCost(id){
+  const u = UPGRADES[id]; if(!u) return Infinity;
+  const lvl = upgLevel(id);
+  return Math.round(u.baseCost * Math.pow(u.costMult, lvl));
+}
+function applyUpgrades(){
+  SHOES.forEach(s=>{
+    const u=UPGRADES['shoe_'+s.id]||UPGRADES[s.id]; if(!u||u.stat!=='spd') return;
+    s.spd = u.base + upgLevel(s.id)*u.perLvl;
+  });
+  TRAILS.forEach(t=>{
+    const u=UPGRADES['trail_'+t.id]||UPGRADES[t.id]; if(!u||u.stat!=='bonus') return;
+    t.bonus = u.base + upgLevel(t.id)*u.perLvl;
+  });
+  HATS.forEach(h=>{
+    const u=UPGRADES['hat_'+h.id]||UPGRADES[h.id]; if(!u||u.stat!=='slow') return;
+    h.slow = Math.min(0.99, u.base + upgLevel(h.id)*u.perLvl);
+  });
+}
+
 const totalSpd = () => eqShoe().spd + eqTrail().bonus;
 const trlCol   = () => { const c=eqTrail().colors; return c[Math.floor(Math.random()*c.length)]; };
 
 // ═══════════════════════════════════════
 // SAVE / LOAD
 // ═══════════════════════════════════════
-let coins=0,gems=0,crowns=0,oji=0,best=0;
+let coins=Infinity,gems=0,crowns=0,oji=0,best=0;
 
 function saveGame(){
   try {
-    localStorage.setItem('rf67b', JSON.stringify({
-      coins,gems,crowns,oji,best,
+    localStorage.setItem('rf67c', JSON.stringify({
+      coins,gems,crowns,oji,best,upgLevels,
       so:SHOES.filter(x=>x.own).map(x=>x.id),
       to:TRAILS.filter(x=>x.own).map(x=>x.id),
       ho:HATS.filter(x=>x.own).map(x=>x.id),
@@ -271,10 +387,16 @@ function saveGame(){
 }
 function loadGame(){
   try {
-    const s=JSON.parse(localStorage.getItem('rf67b')||'{}');
-    coins =s.coins ||0; gems  =s.gems  ||0;
-    crowns=s.crowns||0; oji   =s.oji   !=null?s.oji:9999;
-    best  =s.best  ||0;
+    // Clear old save key if present
+    if(localStorage.getItem('rf67') && !localStorage.getItem('rf67c'))
+      localStorage.removeItem('rf67');
+    const s=JSON.parse(localStorage.getItem('rf67c')||'{}');
+    const G = 1e15;
+    coins  = Infinity; // infinite coins
+    gems   = (s.gems   !== undefined && s.gems   !== null) ? s.gems   : G;
+    crowns = (s.crowns !== undefined && s.crowns !== null) ? s.crowns : G;
+    oji    = (s.oji    !== undefined && s.oji    !== null) ? s.oji    : G;
+    best   = s.best || 0;
     if(s.so) SHOES.forEach(x=>{if(s.so.includes(x.id))x.own=true;});
     if(s.to) TRAILS.forEach(x=>{if(s.to.includes(x.id))x.own=true;});
     if(s.ho) HATS.forEach(x=>{if(s.ho.includes(x.id))x.own=true;});
@@ -282,27 +404,62 @@ function loadGame(){
     const es=SHOES.find(x=>x.id===s.se); if(es){SHOES.forEach(x=>x.eq=false);es.eq=true;}
     const et=TRAILS.find(x=>x.id===s.te);if(et){TRAILS.forEach(x=>x.eq=false);et.eq=true;}
     const eh=HATS.find(x=>x.id===s.he);  if(eh){HATS.forEach(x=>x.eq=false);eh.eq=true;}
-    const ew=WORLDS.find(x=>x.id===s.wa);if(ew){WORLDS.forEach(x=>x.active=false);ew.active=true;}
-  } catch(e){}
+    if(s.upgLevels) upgLevels = s.upgLevels;
+    // Clamp all levels to current MAX_UPGRADE
+    Object.keys(upgLevels).forEach(id => {
+      if(upgLevels[id] > MAX_UPGRADE) upgLevels[id] = MAX_UPGRADE;
+    });
+    applyUpgrades();
+  } catch(e){
+    coins=gems=crowns=oji=1e15; best=0;
+  }
 }
 
 // ═══════════════════════════════════════
 // GAME STATE
 // ═══════════════════════════════════════
-let state='menu',score=0,rCoins=0,rGems=0,rCrowns=0,rOji=0,startTime=0,lastOb=-1;
+let state='menu',score=0,level=1,lastLevel=0,rCoins=0,rGems=0,rCrowns=0,rOji=0,startTime=0,lastOb=-1;
 const P={x:0,y:0,r:10,vx:0,vy:0,spd:3.2};
-const E={x:0,y:0,r:22,spd:1.8,ang:0,wp:null,wpTimer:0};
+let ENEMIES = []; // array of 67s, grows with level
+function makeEnemy(x,y){ return {x,y,r:14,spd:1.8,ang:Math.random()*Math.PI*2}; }
+function targetCount(){ return Math.min(Math.floor((level+1)/2), 7); }
+
+// Find a clear spawn point for a new 67 — far from player, not inside any obstacle
+function spawnEnemy(){
+  const W=CV.width, H=CV.height;
+  const margin=30;
+  let ex=W*.9, ey=H*.9; // fallback
+  // Try 100 random positions, pick the one farthest from player that's clear
+  let bestDist = 0;
+  for(let i=0;i<100;i++){
+    const tx = margin + Math.random()*(W-margin*2);
+    const ty = margin + Math.random()*(H-margin*2);
+    const distP = Math.hypot(tx-P.x, ty-P.y);
+    const clear = !obs.some(o=>rCol(tx,ty,20,o)); // use 20 to give buffer
+    if(clear && distP > bestDist && distP > 100){
+      bestDist = distP; ex=tx; ey=ty;
+    }
+  }
+  return makeEnemy(ex, ey);
+}
 let obs=[],parts=[],nums=[],cols=[];
 
 // ═══════════════════════════════════════
 // INPUT
 // ═══════════════════════════════════════
 const K={};
-window.addEventListener('keydown',e=>{
-  K[e.key]=true;
-  if(state==='playing'&&[' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
-});
-window.addEventListener('keyup',e=>{K[e.key]=false;});
+const ARROW_KEYS = [' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
+window.addEventListener('keydown', e => {
+  K[e.key] = true;
+  // Always block arrow key scrolling so the page never scrolls
+  if (ARROW_KEYS.includes(e.key)) e.preventDefault();
+  // Start game with space
+  if (e.key === ' ' && (state === 'menu' || state === 'dead')) startGame();
+  if (e.key === 'Escape' && (state === 'shop' || state === 'worlds')) { closeShop(); closeWorlds(); }
+  // Start audio on first keypress
+  if (!AC) { initAudio(); if(AC && AC.state==='suspended') AC.resume(); playMenuMusic(); }
+}, {capture: true}); // capture:true ensures this fires before anything else
+window.addEventListener('keyup', e => { K[e.key] = false; }, {capture: true});
 
 let ts=null,td={x:0,y:0};
 CV.addEventListener('pointerdown',e=>{
@@ -322,7 +479,7 @@ CV.addEventListener('pointercancel',()=>{ts=null;td={x:0,y:0};});
 // ═══════════════════════════════════════
 // OVERLAYS
 // ═══════════════════════════════════════
-const OVS=['ovMenu','ovDead','ovShop','ovWorlds'];
+const OVS=['ovMenu','ovDead','ovShop','ovWorlds','ovLog'];
 function showOv(id){OVS.forEach(o=>document.getElementById(o).classList.toggle('hide',o!==id));}
 function hideAll(){OVS.forEach(o=>document.getElementById(o).classList.add('hide'));}
 
@@ -332,6 +489,7 @@ function hideAll(){OVS.forEach(o=>document.getElementById(o).classList.add('hide
 function updateHUD(){
   document.getElementById('hSc').textContent=score;
   document.getElementById('hTm').textContent=score;
+  document.getElementById('hLv').textContent=level;
   document.getElementById('hCo').textContent=coins;
   document.getElementById('hGe').textContent=gems;
   document.getElementById('hCr').textContent=crowns;
@@ -351,13 +509,16 @@ function updateBadges(){
 let shopTab='shoes',shopFrom='menu',worldFrom='menu';
 
 function openShop(from){shopFrom=from;state='shop';renderShop();showOv('ovShop');playMenuMusic();}
-function closeShop(){state=shopFrom;showOv(shopFrom==='dead'?'ovDead':'ovMenu');}
+function closeShop(){
+  state=shopFrom;
+  showOv(shopFrom==='dead'?'ovDead':'ovMenu');
+}
 function openWorlds(from){worldFrom=from;state='worlds';renderWorlds();showOv('ovWorlds');}
 function closeWorlds(){state=worldFrom;showOv(worldFrom==='dead'?'ovDead':'ovMenu');}
 
 function setTab(t){
   shopTab=t;
-  ['shoes','trails','hats'].forEach(x=>{
+  ['shoes','trails','hats','upgrades'].forEach(x=>{
     const el=document.getElementById('t'+x.charAt(0).toUpperCase()+x.slice(1));
     if(el) el.classList.toggle('on',x===t);
   });
@@ -369,8 +530,10 @@ function mkBtn(cls,text,fn){
   const b=document.createElement('button');
   b.className='btn '+cls+' cbtn';
   b.textContent=text;
-  b.addEventListener('pointerup',e=>{e.preventDefault();fn();});
-  b.addEventListener('click',fn); // fallback
+  let last=0;
+  const go=()=>{ const now=Date.now(); if(now-last<350)return; last=now; fn(); };
+  b.addEventListener('click',go);
+  b.addEventListener('touchend',e=>{e.preventDefault();go();},{passive:false});
   return b;
 }
 
@@ -417,7 +580,7 @@ function renderShop(){
       else { const b=mkBtn('pur','BUY · '+t.price+'💎',()=>{if(gems<t.price)return;gems-=t.price;t.own=true;saveGame();renderShop();updateHUD();}); if(gems<t.price)b.disabled=true; d.appendChild(b); }
       g.appendChild(d);
     });
-  } else {
+  } else if(shopTab==='hats'){
     HATS.forEach(h=>{
       const d=document.createElement('div');
       d.className='card'+(h.eq?' eqa':'');
@@ -432,6 +595,59 @@ function renderShop(){
       else if(h.own){ const b=mkBtn('crw','WEAR',()=>{HATS.forEach(x=>x.eq=false);h.eq=true;saveGame();renderShop();updateBadges();}); d.appendChild(b); }
       else { const b=mkBtn('crw','BUY · '+h.price+'👑',()=>{if(crowns<h.price)return;crowns-=h.price;h.own=true;saveGame();renderShop();updateHUD();}); if(crowns<h.price)b.disabled=true; d.appendChild(b); }
       g.appendChild(d);
+    });
+  } else {
+    // UPGRADES TAB
+    const sections=[
+      {label:'👟 SHOES', items:SHOES.filter(s=>s.own&&UPGRADES[s.id])},
+      {label:'✨ TRAILS',items:TRAILS.filter(t=>t.own&&UPGRADES[t.id])},
+      {label:'🎩 HATS',  items:HATS.filter(h=>h.own&&UPGRADES[h.id]&&h.id!=='none')},
+    ];
+    sections.forEach(sec=>{
+      if(!sec.items.length) return;
+      const hdr=document.createElement('div');
+      hdr.style.cssText='grid-column:1/-1;font-family:"Bebas Neue",sans-serif;font-size:.82rem;letter-spacing:.12em;color:rgba(255,255,255,.45);margin:4px 0 2px;';
+      hdr.textContent=sec.label;
+      g.appendChild(hdr);
+      sec.items.forEach(item=>{
+        const u=UPGRADES[item.id];
+        const lvl=upgLevel(item.id);
+        const maxed=lvl>=MAX_UPGRADE;
+        const cost=upgCost(item.id);
+        const canAfford=coins>=cost;
+        const curVal=parseFloat((u.base+lvl*u.perLvl).toFixed(2));
+        const nxtVal=parseFloat((u.base+(lvl+1)*u.perLvl).toFixed(2));
+        const statLabel=u.stat==='spd'?`SPD: ${curVal} → ${nxtVal}`
+          :u.stat==='bonus'?`BONUS: +${curVal} → +${nxtVal}`
+          :`SLOW: ${Math.round(curVal*100)}% → ${Math.round(Math.min(0.99,nxtVal)*100)}%`;
+        const stars='★'.repeat(lvl)+'☆'.repeat(MAX_UPGRADE-lvl);
+        const d=document.createElement('div');
+        d.className='card'+(item.eq?' eqa':'');
+        d.innerHTML=`
+          <span class="cem">${item.emoji}</span>
+          <div class="cnm">${item.name}</div>
+          <div style="color:var(--acc);font-size:.75rem;letter-spacing:.04em;margin-bottom:3px;">${stars}</div>
+          <div class="cst" style="color:var(--grn);">${maxed?'✦ MAX LEVEL':statLabel}</div>
+          ${!maxed?`<div class="cpr" style="color:var(--acc);">${cost.toLocaleString()} 🪙</div>`:''}`;
+        if(!maxed){
+          const b=mkBtn('','⬆ UPGRADE',()=>{
+            if(coins<cost)return;
+            coins-=cost;
+            upgLevels[item.id]=(upgLevels[item.id]||0)+1;
+            applyUpgrades();
+            saveGame();renderShop();updateHUD();
+            sfx('levelup');
+          });
+          if(!canAfford) b.disabled=true;
+          d.appendChild(b);
+        } else {
+          const tag=document.createElement('div');
+          tag.style.cssText='font-size:.55rem;color:var(--acc);margin-top:4px;font-family:"Bebas Neue",sans-serif;letter-spacing:.1em;';
+          tag.textContent='✓ MAXED OUT';
+          d.appendChild(tag);
+        }
+        g.appendChild(d);
+      });
     });
   }
 }
@@ -470,19 +686,59 @@ function showFlash(txt){
   flashTimer=setTimeout(()=>{el.style.opacity='0';flashTimer=null;},700);
 }
 
+// Level definitions — each level ramps difficulty
+const LEVELS = [
+  {lvl:1, label:'LEVEL 1',  sub:'SURVIVE!',            enemyMult:1.0, obsMult:1.0, color:'#ffcc00'},
+  {lvl:2, label:'LEVEL 2',  sub:'67 IS FASTER',        enemyMult:1.3, obsMult:1.1, color:'#ff9900'},
+  {lvl:3, label:'LEVEL 3',  sub:'MORE OBSTACLES',      enemyMult:1.6, obsMult:1.3, color:'#ff6600'},
+  {lvl:4, label:'LEVEL 4',  sub:'67 IS HUNTING YOU',   enemyMult:2.0, obsMult:1.5, color:'#ff3300'},
+  {lvl:5, label:'LEVEL 5',  sub:'GOOD LUCK.',           enemyMult:2.5, obsMult:1.7, color:'#ff0055'},
+  {lvl:6, label:'LEVEL 6',  sub:'NO ESCAPE.',           enemyMult:3.1, obsMult:2.0, color:'#cc00ff'},
+  {lvl:7, label:'LEVEL 7',  sub:'67 IS EVERYWHERE.',   enemyMult:3.8, obsMult:2.3, color:'#00e5ff'},
+  {lvl:8, label:'LEVEL 8',  sub:'YOU CANNOT WIN.',     enemyMult:4.6, obsMult:2.6, color:'#ff2255'},
+  {lvl:9, label:'LEVEL 9',  sub:'WHY ARE YOU ALIVE?',  enemyMult:5.5, obsMult:3.0, color:'#ffffff'},
+];
+function curLevelData(){ return LEVELS[Math.min(level-1, LEVELS.length-1)]; }
+
+let lvlBannerTimer = null;
+function showLevelBanner(ld){
+  const txt = document.getElementById('lvltext');
+  const sub = document.getElementById('lvlsub');
+  txt.textContent = ld.label;
+  sub.textContent = ld.sub;
+  txt.style.color = ld.color;
+  txt.style.textShadow = `0 0 30px ${ld.color}`;
+  txt.style.opacity = '1';
+  sub.style.opacity = '1';
+  if(lvlBannerTimer) clearTimeout(lvlBannerTimer);
+  lvlBannerTimer = setTimeout(()=>{
+    txt.style.opacity='0'; sub.style.opacity='0';
+  }, 2000);
+  // Level-up sound
+  sfx('levelup');
+  // Flash screen briefly with level color
+  for(let i=0;i<20;i++){
+    const a=Math.random()*Math.PI*2,sp=3+Math.random()*6;
+    parts.push({x:CV.width/2,y:CV.height/2,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,decay:.025,r:3+Math.random()*5,color:ld.color});
+  }
+}
+
 // ═══════════════════════════════════════
 // SPAWN
 // ═══════════════════════════════════════
 function spawnObs(){
   obs=[];
-  const W=CV.width,H=CV.height,n=7+Math.floor(score/20);
+  const W=CV.width,H=CV.height;
+  const ld=curLevelData();
+  const n=Math.min(Math.round((5+Math.floor(score/20))*ld.obsMult),18);
   for(let i=0;i<n;i++){
     let o,t=0,valid=false;
     do{
       o={x:60+Math.random()*(W-120),y:60+Math.random()*(H-120),w:28+Math.random()*50,h:18+Math.random()*38};
       const awayP=Math.abs(o.x-P.x)>80||Math.abs(o.y-P.y)>80;
+      const awayE=ENEMIES.every(e=>Math.abs(o.x-e.x)>60||Math.abs(o.y-e.y)>60);
       const noOv=obs.every(ex=>o.x>ex.x+ex.w+8||o.x+o.w<ex.x-8||o.y>ex.y+ex.h+8||o.y+o.h<ex.y-8);
-      valid=awayP&&noOv; t++;
+      valid=awayP&&awayE&&noOv; t++;
     } while(!valid&&t<50);
     if(valid) obs.push(o);
   }
@@ -510,11 +766,13 @@ function spawnCols(){
 // ═══════════════════════════════════════
 function startGame(){
   const W=CV.width,H=CV.height;
-  state='playing'; score=0; rCoins=0; rGems=0; rCrowns=0; rOji=0;
+  state='playing'; score=0; level=1; lastLevel=0; rCoins=0; rGems=0; rCrowns=0; rOji=0;
   startTime=performance.now(); parts=[]; nums=[]; lastOb=-1; td={x:0,y:0};
   P.x=W*.5;P.y=H*.5;P.vx=0;P.vy=0;P.spd=totalSpd();
-  E.x=W*.9;E.y=H*.9;E.spd=1.8;E.ang=0;E.wp=null;E.wpTimer=0;
   spawnObs();spawnCols();
+  // Spawn first 67 — find a clear spot far from player
+  ENEMIES = [];
+  ENEMIES.push(spawnEnemy());
   hideAll();updateHUD();updateBadges();
   document.getElementById('qbtn').style.display='block';
   playGameMusic();
@@ -522,7 +780,8 @@ function startGame(){
 function die(){
   state='dead';
   if(score>best)best=score;
-  coins+=rCoins;gems+=rGems;crowns+=rCrowns;oji+=rOji;
+  // Only lose level progress — keep all currencies
+  coins+=rCoins; gems+=rGems; crowns+=rCrowns; oji+=rOji;
   saveGame();updateHUD();
   const col=eqTrail().colors[0];
   for(let i=0;i<40;i++){
@@ -530,8 +789,9 @@ function die(){
     parts.push({x:P.x,y:P.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,decay:.022+Math.random()*.02,r:2+Math.random()*4,color:Math.random()>.5?'#ff2255':col});
   }
   document.getElementById('deadSub').innerHTML=
-    `SURVIVED <span style="color:var(--acc);font-size:1.1em">${score}s</span><br>`+
-    `+${rCoins}🪙 +${rGems}💎 +${rCrowns}👑 +${rOji}💠<br>`+
+    `SURVIVED <span style="color:var(--acc);font-size:1.1em">${score}s</span> · REACHED LEVEL <span style="color:var(--red)">${level}</span><br>`+
+    `<span style="color:var(--red)">LEVEL PROGRESS LOST 💀</span><br>`+
+    `+${rCoins}🪙 +${rGems}💎 +${rCrowns}👑 +${rOji}💠 KEPT<br>`+
     `<span style="color:rgba(255,255,255,.22);font-size:.78em">TOTAL: ${coins}🪙 ${gems}💎 ${crowns}👑 ${oji}💠</span>`;
   showOv('ovDead');
   document.getElementById('qbtn').style.display='none';
@@ -617,9 +877,24 @@ function loop(){
     document.getElementById('hCr').textContent=crowns+rCrowns;
     document.getElementById('hOj').textContent=oji+rOji;
 
-    E.spd=1.8+Math.floor(score/20)*.15*(1-eqHat().slow);
+    // Level system — new level every 30 seconds, max level 9999
+    const newLevel = Math.min(Math.floor(score / 30) + 1, 9999);
+    if (newLevel > level) {
+      level = newLevel;
+      document.getElementById('hLv').textContent = level;
+      showLevelBanner(curLevelData());
+      spawnObs();
+      lastOb = score;
+    }
 
-    // Player
+    // Enemy speed scales with level
+    const ld = curLevelData();
+    const baseSpd = 1.8;
+    const gainSpd = Math.floor(score / 20) * .05 * (1 - eqHat().slow); // hat only reduces gain
+    const eSpd = (baseSpd + gainSpd) * ld.enemyMult;
+    document.getElementById('hLv').textContent = level;
+
+    // Player movement
     let dx=0,dy=0;
     if(K['ArrowLeft']||K['a']||K['A'])dx-=1; if(K['ArrowRight']||K['d']||K['D'])dx+=1;
     if(K['ArrowUp']  ||K['w']||K['W'])dy-=1; if(K['ArrowDown'] ||K['s']||K['S'])dy+=1;
@@ -630,76 +905,26 @@ function loop(){
     let blk=false;for(const o of obs)if(rCol(nx,ny,P.r,o)){blk=true;break;}
     if(!blk){P.x=nx;P.y=ny;}
 
-    // Enemy AI — ray-cast waypoint with unstuck logic
-    E.ang += .02;
-
-    // Track how long 67 has been stuck in the same spot
-    if (!E.lastPos) E.lastPos = {x: E.x, y: E.y, frames: 0};
-    const moved = Math.hypot(E.x - E.lastPos.x, E.y - E.lastPos.y);
-    if (moved < 0.3) { E.lastPos.frames++; } else { E.lastPos.x=E.x; E.lastPos.y=E.y; E.lastPos.frames=0; }
-    const stuck = E.lastPos.frames > 20;
-
-    if (!E.wp || E.wpTimer <= 0 || stuck) {
-      const toAng = Math.atan2(P.y - E.y, P.x - E.x);
-      let bestScore = -Infinity, bdx = 0, bdy = 0;
-      const RAY_STEPS = [8, 16, 24, 32, 40]; // check closer steps too
-      for (let r = 0; r < 32; r++) {
-        // If stuck, try random angles to escape; otherwise prefer player direction
-        const ang = stuck
-          ? Math.random() * Math.PI * 2
-          : toAng + (r / 32 - 0.5) * Math.PI * 2;
-        const rdx = Math.cos(ang), rdy = Math.sin(ang);
-        const dot = rdx * (P.x - E.x) + rdy * (P.y - E.y);
-        // Find how far this ray can travel before hitting an obstacle
-        let clearDist = 40;
-        for (const step of RAY_STEPS) {
-          const rx = E.x + rdx * step, ry = E.y + rdy * step;
-          if (rx < E.r || rx > W - E.r || ry < E.r || ry > H - E.r) { clearDist = step - 8; break; }
-          if (obs.some(o => rx > o.x - E.r && rx < o.x + o.w + E.r && ry > o.y - E.r && ry < o.y + o.h + E.r)) {
-            clearDist = step - 8; break;
-          }
-        }
-        // Score: reward clear space + direction toward player; penalise blocked rays
-        const sc = (clearDist / 40) * 200 + (clearDist > 8 ? dot : -99999);
-        if (sc > bestScore) { bestScore = sc; bdx = rdx; bdy = rdy; }
-      }
-      // Waypoint distance: shorter when stuck so we re-evaluate sooner
-      const wpDist = stuck ? 20 : 50;
-      E.wp = {x: E.x + bdx * wpDist, y: E.y + bdy * wpDist};
-      E.wpTimer = stuck ? 8 : 30;
-      if (stuck) { E.lastPos.frames = 0; }
-    }
-    E.wpTimer--;
-
-    // Steer toward waypoint
-    const wpDx = E.wp.x - E.x, wpDy = E.wp.y - E.y, wpD = Math.hypot(wpDx, wpDy);
-    let mX = wpD > 0 ? wpDx / wpD : 0, mY = wpD > 0 ? wpDy / wpD : 0;
-    // When close to waypoint, aim directly at player
-    if (wpD < 12) {
-      const pd = Math.hypot(P.x - E.x, P.y - E.y);
-      mX = pd > 0 ? (P.x - E.x) / pd : 0;
-      mY = pd > 0 ? (P.y - E.y) / pd : 0;
-      E.wpTimer = 0;
+    // Add new 67s when level increases
+    const needed = targetCount();
+    while (ENEMIES.length < needed) {
+      const e = spawnEnemy();
+      e.spd = eSpd;
+      ENEMIES.push(e);
+      showFlash('NEW 67! 😱');
+      sfx('levelup');
     }
 
-    // Move with wall-slide fallback
-    let enx = Math.max(E.r, Math.min(W - E.r, E.x + mX * E.spd));
-    let eny = Math.max(E.r, Math.min(H - E.r, E.y + mY * E.spd));
-    if (obs.some(o => rCol(enx, eny, E.r, o))) {
-      // Try X-only
-      const ex2 = Math.max(E.r, Math.min(W - E.r, E.x + mX * E.spd));
-      if (!obs.some(o => rCol(ex2, E.y, E.r, o))) { enx = ex2; eny = E.y; }
-      else {
-        // Try Y-only
-        const ey2 = Math.max(E.r, Math.min(H - E.r, E.y + mY * E.spd));
-        if (!obs.some(o => rCol(E.x, ey2, E.r, o))) { enx = E.x; eny = ey2; }
-        else {
-          // Fully blocked — force waypoint recalc next frame
-          enx = E.x; eny = E.y; E.wpTimer = 0;
-        }
+    // Update all 67s — direct chase, phases through obstacles
+    for (const E of ENEMIES) {
+      E.spd = eSpd;
+      const toX = P.x - E.x, toY = P.y - E.y;
+      const dist = Math.hypot(toX, toY);
+      if (dist > 0) {
+        E.x = Math.max(E.r, Math.min(W - E.r, E.x + (toX / dist) * E.spd));
+        E.y = Math.max(E.r, Math.min(H - E.r, E.y + (toY / dist) * E.spd));
       }
     }
-    E.x = enx; E.y = eny;
 
     // Collectibles
     for(let i=cols.length-1;i>=0;i--){
@@ -713,9 +938,16 @@ function loop(){
       }
     }
 
-    const edist=Math.hypot(P.x-E.x,P.y-E.y);
-    if(edist<P.r+18)die();
-    else if(edist<P.r+40)showFlash('CLOSE CALL!');
+    // Catch — check all 67s (grace period: first 2 seconds)
+    if (score > 2) {
+      let caught = false;
+      for (const E of ENEMIES) {
+        const edist=Math.hypot(P.x-E.x,P.y-E.y);
+        if(edist<P.r+18){ caught=true; break; }
+        else if(edist<P.r+40) showFlash('CLOSE CALL!');
+      }
+      if(caught) die();
+    }
     if(score>0&&score%15===0&&score!==lastOb){lastOb=score;spawnObs();}
 
     // Particles
@@ -756,9 +988,11 @@ function loop(){
   if(state==='playing'||state==='dead'){
     const sh=eqShoe(),tr=eqTrail(),ht=eqHat(),gc=tr.colors[0];
     drawStick(P.x,P.y,gc,sh,ht,Date.now());
-    draw67(E.x,E.y,Date.now());
-    const ed=Math.hypot(P.x-E.x,P.y-E.y);
-    if(ed<160){CX.save();CX.globalAlpha=(1-ed/160)*.3;CX.setLineDash([4,6]);CX.strokeStyle='#ff2255';CX.lineWidth=1;CX.beginPath();CX.moveTo(E.x,E.y);CX.lineTo(P.x,P.y);CX.stroke();CX.setLineDash([]);CX.restore();}
+    for (const E of ENEMIES) {
+      draw67(E.x,E.y,Date.now());
+      const ed=Math.hypot(P.x-E.x,P.y-E.y);
+      if(ed<160){CX.save();CX.globalAlpha=(1-ed/160)*.3;CX.setLineDash([4,6]);CX.strokeStyle='#ff2255';CX.lineWidth=1;CX.beginPath();CX.moveTo(E.x,E.y);CX.lineTo(P.x,P.y);CX.stroke();CX.setLineDash([]);CX.restore();}
+    }
     if(state==='playing'){
       const bw=52,bh=4,bx=W-bw-8,by=H-13;
       CX.fillStyle='rgba(255,255,255,.06)';CX.fillRect(bx,by,bw,bh);
@@ -815,6 +1049,17 @@ function sfx(type){
     o.type='sawtooth'; o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(1200,t+.2);
     g.gain.setValueAtTime(.08,t); g.gain.linearRampToValueAtTime(0,t+.22);
     o.start(t); o.stop(t+.22);
+  } else if(type==='levelup'){
+    // Triumphant rising fanfare
+    [[523,.1],[659,.1],[784,.1],[1047,.3]].forEach(([f,d],i,a)=>{
+      const o2=AC.createOscillator(),g2=AC.createGain();
+      o2.connect(g2);g2.connect(AC.destination);
+      const st=t+a.slice(0,i).reduce((s,[,d2])=>s+d2,0);
+      o2.type='square';o2.frequency.setValueAtTime(f,st);
+      g2.gain.setValueAtTime(.09,st);g2.gain.linearRampToValueAtTime(0,st+d+.1);
+      o2.start(st);o2.stop(st+d+.12);
+    });
+    o.disconnect(); return;
   }
 }
 function stopMusic(){musicNodes.forEach(n=>{try{n.stop();}catch(e){}});musicNodes=[];musicState=null;}
@@ -830,18 +1075,49 @@ function playMenuMusic(){
   if(musicState==='menu')return;
   stopMusic();initAudio();if(!AC)return;musicState='menu';
   const M=AC.createGain();M.gain.value=0.06;M.connect(AC.destination);
-  const B=60/140;
-  const mel=[[523,1],[587,.5],[659,.5],[698,1],[784,1],[880,.5],[784,.5],[698,1],[659,1],[587,.5],[523,.5],[440,1],[494,1],[523,2],[659,1],[698,.5],[784,.5],[880,1],[988,1],[880,.5],[784,.5],[698,1],[659,1],[587,1],[523,.5],[494,.5],[440,1],[523,2]];
-  const bas=[[131,2],[165,2],[175,2],[196,2],[220,2],[196,2],[175,2],[165,2]];
+  // Chill lo-fi ambient — slow 90BPM, major key, warm triangle/sine tones
+  const B=60/90;
+  // Gentle melody — C major, slow and relaxed
+  const mel=[
+    [392,2],[440,1],[494,1],[523,2],[494,1],[440,1],
+    [392,2],[349,1],[392,1],[440,2],[392,2],
+    [523,2],[494,1],[440,1],[392,2],[349,1],[330,1],
+    [294,2],[330,1],[349,1],[392,4],
+  ];
+  // Warm pad chords (lower octave)
+  const pad=[
+    [196,4],[220,4],[247,4],[262,4],
+    [196,4],[175,4],[196,4],[220,4],
+  ];
+  // Soft high shimmer
+  const shimmer=[
+    [784,2],[880,2],[988,2],[1047,2],
+    [988,2],[880,2],[784,2],[698,2],
+  ];
   function sched(){
     if(musicState!=='menu')return;
     let t=AC.currentTime;
-    mel.forEach(([f,d])=>{note(f,t,d*B*.85,.5,'square',M);t+=d*B;});
+    mel.forEach(([f,d])=>{note(f,t,d*B*.7,.3,'triangle',M);t+=d*B;});
     const len=t-AC.currentTime;
-    let tb=AC.currentTime;bas.forEach(([f,d])=>{note(f,tb,d*B*.7,.35,'triangle',M);tb+=d*B;});
-    for(let i=0;i<16;i++){
-      const bt=AC.currentTime+i*B;
-      try{const buf=AC.createBuffer(1,AC.sampleRate*.05,AC.sampleRate);const data=buf.getChannelData(0);for(let j=0;j<data.length;j++)data[j]=(Math.random()*2-1)*(i%2===0?1:.3);const src=AC.createBufferSource();src.buffer=buf;const dg=AC.createGain();dg.gain.setValueAtTime(.18,bt);dg.gain.linearRampToValueAtTime(0,bt+.05);src.connect(dg);dg.connect(M);src.start(bt);src.stop(bt+.06);musicNodes.push(src);}catch(e){}
+    // Pad (slow chord swells)
+    let tp=AC.currentTime;
+    pad.forEach(([f,d])=>{note(f,tp,d*B*.9,.18,'sine',M);tp+=d*B;});
+    // Shimmer (very quiet high notes)
+    let ts2=AC.currentTime;
+    shimmer.forEach(([f,d])=>{note(f,ts2,d*B*.5,.06,'sine',M);ts2+=d*B;});
+    // Soft kick every 4 beats (gentle, not intrusive)
+    for(let i=0;i<8;i++){
+      const bt=AC.currentTime+i*B*2;
+      try{
+        const buf=AC.createBuffer(1,AC.sampleRate*.12,AC.sampleRate);
+        const data=buf.getChannelData(0);
+        for(let j=0;j<data.length;j++) data[j]=(Math.random()*2-1)*Math.exp(-j/(AC.sampleRate*.04));
+        const src=AC.createBufferSource();src.buffer=buf;
+        const dg=AC.createGain();
+        dg.gain.setValueAtTime(.06,bt);dg.gain.linearRampToValueAtTime(0,bt+.12);
+        src.connect(dg);dg.connect(M);src.start(bt);src.stop(bt+.13);
+        musicNodes.push(src);
+      }catch(e){}
     }
     setTimeout(sched,(len-.5)*1000);
   }
@@ -879,20 +1155,29 @@ function playDeathMusic(){
 // BOOT — all buttons wired here, AFTER all functions defined
 // ═══════════════════════════════════════
 loadGame();
+applyUpgrades();
 updateHUD();
 updateBadges();
 
-function tap(id,fn){
-  const el=document.getElementById(id);
-  if(!el)return;
-  // Use pointerup — works on Android, iOS, and desktop reliably
-  el.addEventListener('pointerup',e=>{e.preventDefault();fn();});
-  el.addEventListener('click',fn); // fallback
+function tap(id, fn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let last = 0;
+  const go = () => {
+    const now = Date.now();
+    if (now - last < 350) return;
+    last = now;
+    fn();
+  };
+  el.addEventListener('click', go);
+  el.addEventListener('touchend', e => { e.preventDefault(); go(); }, {passive: false});
 }
 
 tap('btnStart', startGame);
 tap('btnShop',  ()=>openShop('menu'));
 tap('btnWorlds',()=>openWorlds('menu'));
+tap('btnLog',   ()=>{state='log';showOv('ovLog');});
+tap('btnLogClose',()=>{state='menu';showOv('ovMenu');});
 tap('btnLeave', ()=>showOv('ovMenu'));
 tap('btnAgain', startGame);
 tap('btnDShop', ()=>openShop('dead'));
@@ -905,16 +1190,12 @@ tap('qbtn',()=>{state='menu';parts=[];nums=[];td={x:0,y:0};document.getElementBy
 tap('tShoes', ()=>setTab('shoes'));
 tap('tTrails',()=>setTab('trails'));
 tap('tHats',  ()=>setTab('hats'));
+tap('tUpgrades',()=>setTab('upgrades'));
 
-document.addEventListener('keydown',e=>{
-  if(e.key===' '&&(state==='menu'||state==='dead'))startGame();
-  if(e.key==='Escape'&&(state==='shop'||state==='worlds')){closeShop();closeWorlds();}
-});
 
 // Start music on first interaction
 function firstTouch(){initAudio();if(AC&&AC.state==='suspended')AC.resume();playMenuMusic();}
 document.addEventListener('pointerdown',firstTouch,{once:true});
-document.addEventListener('keydown',firstTouch,{once:true});
 
 loop();
 </script>
